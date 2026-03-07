@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="public/logo/fitplan-logo.png" alt="FitPlan AI Logo" width="80" />
   <h1>FitPlan AI</h1>
   <p><strong>AI-Powered Fitness Meal Planner — Personalized Nutrition in Seconds</strong></p>
 
@@ -20,10 +19,6 @@
 **FitPlan AI** is a full-stack SaaS application that generates personalized daily and weekly meal plans using OpenAI GPT-4o. Users input their body metrics, fitness goals, dietary preferences, cooking ability, and daily budget — and receive complete meal plans with recipes, macro breakdowns, cooking instructions, and grocery lists with cost estimates.
 
 Built with a premium dark health-tech UI (Neon Coral + Space Black), the app targets health-conscious users aged 25–40 worldwide and runs on a freemium Stripe subscription model.
-
-<div align="center">
-  <img src="images/dashboard-preview.png" alt="Dashboard Preview" width="800" />
-</div>
 
 ---
 
