@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHTLY_ACTIVE
+  MODERATELY_ACTIVE
+  VERY_ACTIVE
+  EXTRA_ACTIVE
+}
+
+enum FitnessGoal {
+  FAT_LOSS
+  MUSCLE_GAIN
+  MAINTENANCE
+  ATHLETIC_PERFORMANCE
+}
+
+enum DietaryPreference {
+  VEGETARIAN
+  NON_VEG
+  VEGAN
+  EGGETARIAN
+}
+
+enum CuisinePreference {
+  INDIAN
+  CONTINENTAL
+  MIXED
+}
+
+enum CookingAbility {
+  MINIMAL
+  MODERATE
+  FULL_KITCHEN
+}
+
+enum PlanType {
+  DAILY
+  WEEKLY
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  ULTIMATE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  INCOMPLETE
+}
+
+enum BudgetCurrency {
+  INR
+  USD
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+/// User model — synced from Clerk via webhook (Req 1.1, 1.2)
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile      UserProfile?
+  mealPlans    MealPlan[]
+  subscription Subscription?
+
+  @@index([clerkId])
+  @@index([email])
+}
+
+/// UserProfile — one-to-one with User, stores body metrics and preferences (Req 1.3, 1.4)
+model UserProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Body metrics (Req 1.3, 2.1)
+  weightKg      Float
+  heightCm      Float
+  age           Int
+  gender        Gender
+  activityLevel ActivityLevel
+
+  // Dietary preferences (Req 3.1)
+  dietaryPreference DietaryPreference @default(NON_VEG)
+  cuisinePreference CuisinePreference @default(MIXED)
+  allergies         String[]          @default([])
+
+  // Budget (Req 3.1)
+  dailyBudget    Float          @default(500)
+  budgetCurrency BudgetCurrency @default(INR)
+
+  // Meal settings (Req 3.1)
+  mealsPerDay    Int            @default(3)
+  cookingAbility CookingAbility @default(MODERATE)
+
+  // Fitness goal (Req 3.1)
+  fitnessGoal FitnessGoal @default(MAINTENANCE)
+
+  // Calculated values (Req 2.2, 2.3)
+  tdee          Int?
+  dailyCalories Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// MealPlan — stores generated meal plans with JSONB for meals and grocery list (Req 4.2, 6.1)
+model MealPlan {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Plan metadata (Req 4.2)
+  planType          PlanType
+  targetCalories    Int
+  fitnessGoal       FitnessGoal
+  dietaryPreference DietaryPreference
+  cuisinePreference CuisinePreference
+  cookingAbility    CookingAbility
+  allergies         String[]          @default([])
+  mealsPerDay       Int
+  dailyBudget       Float
+  budgetCurrency    BudgetCurrency
+
+  // Macro breakdown (Req 9.1–9.5)
+  proteinGrams   Float
+  carbGrams      Float
+  fatGrams       Float
+  proteinPercent Float
+  carbPercent    Float
+  fatPercent     Float
+
+  // AI-generated content as JSONB (Req 4.2)
+  meals       Json // Array of DailyPlan objects
+  groceryList Json // Array of GroceryItem objects
+
+  // Total cost estimate
+  totalDailyCost  Float
+  totalWeeklyCost Float?
+
+  // Management (Req 6.1–6.6)
+  isFavorite Boolean   @default(false)
+  deletedAt  DateTime? // Soft delete (Req 6.6)
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedLink SharedLink?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, isFavorite])
+}
+
+/// Subscription — tracks Stripe subscription state (Req 5.1–5.10)
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Stripe identifiers
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  // Subscription state (Req 5.1–5.3)
+  tier   SubscriptionTier   @default(FREE)
+  status SubscriptionStatus @default(ACTIVE)
+
+  // Billing period (Req 5.8, 5.10)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+
+  // Usage tracking (Req 5.1–5.4)
+  generationsUsed  Int @default(0)
+  generationsLimit Int @default(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeSubscriptionId])
+}
+
+/// SharedLink — for shareable meal plan links (Req 7.2–7.4)
+model SharedLink {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  mealPlanId String    @unique
+  token      String    @unique @default(cuid())
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime?
+  viewCount  Int       @default(0)
+
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([mealPlanId])
+}

@@ -1,0 +1,24 @@
+{
+  "name": "FitPlan AI",
+  "short_name": "FitPlan AI",
+  "description": "AI-powered personalised meal planning",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121313",
+  "theme_color": "#FF6044",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo/fitplan-favicon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo/fitplan-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

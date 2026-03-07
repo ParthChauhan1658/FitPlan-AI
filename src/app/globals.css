@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 7%;           /* #121313 Space Black */
+    --foreground: 0 0% 94%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 94%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 94%;
+    --primary: 10 100% 63%;          /* #FF6044 Neon Coral */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 37 100% 64%;        /* #FFB347 Warm Amber */
+    --secondary-foreground: 0 0% 7%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 149 63% 54%;           /* #3DD68C Mint Green */
+    --accent-foreground: 0 0% 7%;
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 94%;
+    --border: 0 0% 14%;
+    --input: 0 0% 11%;
+    --ring: 10 100% 63%;             /* Coral ring */
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+/* ── Coral scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #121313; }
+::-webkit-scrollbar-thumb {
+  background: #FF6044;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: #E8543A; }
+
+@layer utilities {
+  /* Coral → Amber gradient heading */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-teal to-brand-amber bg-clip-text text-transparent;
+  }
+
+  /* Glassmorphism card — warm-tinted border on dark surface */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 1rem;
+  }
+
+  @supports (backdrop-filter: blur(12px)) {
+    .glass-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  }
+
+  /* Coral glow card variant */
+  .glass-card-coral {
+    background: rgba(255, 96, 68, 0.06);
+    border: 1px solid rgba(255, 96, 68, 0.15);
+    border-radius: 1rem;
+  }
+
+  @supports (backdrop-filter: blur(12px)) {
+    .glass-card-coral {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  }
+}
+
+/* ── Logo sprite animation (fitplan-animated-workflow.png — 3600×600, 6 frames) */
+@keyframes logo-sprite {
+  from { background-position: 0 0; }
+  to   { background-position: -360px 0; }
+}
+
+.logo-sprite {
+  width: 60px;
+  height: 60px;
+  background-image: url('/logo/fitplan-animated-workflow.png');
+  background-size: 360px 60px;   /* scaled to 0.1× of original 3600×600 */
+  background-repeat: no-repeat;
+  animation: logo-sprite 0.9s steps(6, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-sprite {
+    animation: none;
+    background-position: 0 0; /* show first frame only */
+  }
+}
+
+/* ── Dashboard pages: full-height scroll ───────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
